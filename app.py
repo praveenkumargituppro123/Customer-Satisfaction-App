@@ -94,76 +94,100 @@ class CustomerSatisfactionPredictor:
     def get_valid_values(self):
         return self.feature_mappings
 
-# Streamlit UI
-st.set_page_config(page_title="Customer Satisfaction Predictor", layout="wide")
+def login_page():
+    st.title("Login")
 
-st.title('Customer Satisfaction Predictor')
-st.markdown("""
-<style>
-.highlight {
-    background-color: #f0f2f6;
-    padding: 10px;
-    border-radius: 5px;
-}
-</style>
-""", unsafe_allow_html=True)
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-# File uploader
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    if st.button("Login"):
+        if username == "admin" and password == "1234":
+            st.session_state['logged_in'] = True
+        else:
+            st.error("Invalid username or password")
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    predictor = CustomerSatisfactionPredictor(df)
+def main_app():
+    st.set_page_config(page_title="Customer Satisfaction Predictor", layout="wide")
 
-    # Sidebar for user inputs
-    st.sidebar.header('User Input Features')
-    valid_values = predictor.get_valid_values()
-    product = st.sidebar.selectbox('Product Purchased', valid_values['products'])
-    ticket_type = st.sidebar.selectbox('Ticket Type', valid_values['ticket_types'])
-    priority = st.sidebar.selectbox('Ticket Priority', valid_values['priorities'])
-    status = st.sidebar.selectbox('Ticket Status', valid_values['statuses'])
-    age = st.sidebar.slider('Customer Age', 18, 100, 35)
+    st.title('Customer Satisfaction Predictor')
+    st.markdown("""
+    <style>
+    .highlight {
+        background-color: #f0f2f6;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # Main area for results
-    st.header('Prediction Results')
+    # File uploader
+    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
-    # Make prediction
-    if st.sidebar.button('Predict'):
-        try:
-            prediction = predictor.predict(product, ticket_type, priority, status, age)
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        predictor = CustomerSatisfactionPredictor(df)
 
-            # Display inputs
-            st.subheader('Given Inputs')
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"**Product Purchased:** {prediction['details']['product']}")
-                st.markdown(f"**Ticket Type:** {prediction['details']['ticket_type']}")
-            with col2:
-                st.markdown(f"**Priority:** {prediction['details']['priority']}")
-                st.markdown(f"**Status:** {prediction['details']['status']}")
-            st.markdown(f"**Customer Age:** {prediction['details']['customer_age']}")
+        # Sidebar for user inputs
+        st.sidebar.header('User Input Features')
+        valid_values = predictor.get_valid_values()
+        product = st.sidebar.selectbox('Product Purchased', valid_values['products'])
+        ticket_type = st.sidebar.selectbox('Ticket Type', valid_values['ticket_types'])
+        priority = st.sidebar.selectbox('Ticket Priority', valid_values['priorities'])
+        status = st.sidebar.selectbox('Ticket Status', valid_values['statuses'])
+        age = st.sidebar.slider('Customer Age', 18, 100, 35)
 
-            # Display prediction and satisfaction level
-            st.subheader('Prediction')
-            st.markdown(f"**Predicted Satisfaction Rating:** {prediction['prediction']:.2f}")
+        # Main area for results
+        st.header('Prediction Results')
 
-            # Visual representation of satisfaction level
-            satisfaction_level = prediction['satisfaction_level']
-            st.markdown(f"**Satisfaction Level:** {satisfaction_level}")
+        # Make prediction
+        if st.sidebar.button('Predict'):
+            try:
+                prediction = predictor.predict(product, ticket_type, priority, status, age)
 
-            # Display a visual indicator for satisfaction level
-            if satisfaction_level == 'Very Satisfied':
-                st.success("The customer is very satisfied!")
-            elif satisfaction_level == 'Satisfied':
-                st.success("The customer is satisfied.")
-            elif satisfaction_level == 'Neutral':
-                st.warning("The customer is neutral.")
-            elif satisfaction_level == 'Dissatisfied':
-                st.error("The customer is dissatisfied.")
-            else:
-                st.error("The customer is very dissatisfied.")
+                # Display inputs
+                st.subheader('Given Inputs')
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**Product Purchased:** {prediction['details']['product']}")
+                    st.markdown(f"**Ticket Type:** {prediction['details']['ticket_type']}")
+                with col2:
+                    st.markdown(f"**Priority:** {prediction['details']['priority']}")
+                    st.markdown(f"**Status:** {prediction['details']['status']}")
+                st.markdown(f"**Customer Age:** {prediction['details']['customer_age']}")
 
-        except ValueError as e:
-            st.error(str(e))
-else:
-    st.info("Please upload a CSV file to proceed.")
+                # Display prediction and satisfaction level
+                st.subheader('Prediction')
+                st.markdown(f"**Predicted Satisfaction Rating:** {prediction['prediction']:.2f}")
+
+                # Visual representation of satisfaction level
+                satisfaction_level = prediction['satisfaction_level']
+                st.markdown(f"**Satisfaction Level:** {satisfaction_level}")
+
+                # Display a visual indicator for satisfaction level
+                if satisfaction_level == 'Very Satisfied':
+                    st.success("The customer is very satisfied!")
+                elif satisfaction_level == 'Satisfied':
+                    st.success("The customer is satisfied.")
+                elif satisfaction_level == 'Neutral':
+                    st.warning("The customer is neutral.")
+                elif satisfaction_level == 'Dissatisfied':
+                    st.error("The customer is dissatisfied.")
+                else:
+                    st.error("The customer is very dissatisfied.")
+
+            except ValueError as e:
+                st.error(str(e))
+    else:
+        st.info("Please upload a CSV file to proceed.")
+
+def main():
+    if 'logged_in' not in st.session_state:
+        st.session_state['logged_in'] = False
+
+    if not st.session_state['logged_in']:
+        login_page()
+    else:
+        main_app()
+
+if __name__ == "__main__":
+    main()
