@@ -1,8 +1,29 @@
+import subprocess
+import sys
 import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
+
+def install_package(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+def check_and_install_packages():
+    packages = [
+        'streamlit',
+        'pandas',
+        'numpy',
+        'scikit-learn'
+    ]
+
+    for package in packages:
+        try:
+            __import__(package)
+            print(f"{package} is already installed.")
+        except ImportError:
+            print(f"Installing {package}...")
+            install_package(package)
 
 class CustomerSatisfactionPredictor:
     def __init__(self, df):
@@ -181,6 +202,8 @@ def main_app():
         st.info("Please upload a CSV file to proceed.")
 
 def main():
+    check_and_install_packages()
+
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
